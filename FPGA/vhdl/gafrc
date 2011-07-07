@@ -1,0 +1,6 @@
+; For syms and schematics, we can search:
+;
+(component-library "Symbols")
+(component-library "VHDL-Symbols")
+(source-library ".")
+(define default-titleblock "Noqsi-title-B.sym")
