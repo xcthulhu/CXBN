@@ -14,5 +14,5 @@ install: $(OBJ)
 uninstall: $(OBJ)
 	mspdebug -d $(TTY) uif "erase"
 
-clean: uninstall
+clean: 
 	rm -f $(OBJ)
