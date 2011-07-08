@@ -1,16 +1,17 @@
 #include "msp430x22x4.h"
 #include <signal.h>
 #include <string.h>
+#include "../pipper_common.h"
 
-#define SYNC_CHAR1  'P'
-#define SYNC_CHAR2  'i'
+// WARNING: Do not multiply include in one compiled object
+#include "../../checksum_ref.c"
 
 static unsigned char i;
 unsigned char received;
 unsigned char uart_buffer[36];
 unsigned int data1, data2;
 unsigned short adc;
-unsigned char MST_Data[8];
+unsigned char MST_Data[PIPPER_FLOATS];
 float conv_adc;
 static unsigned char uart_index;
 
@@ -65,60 +66,48 @@ float spi_adc ()
     UCB0TXBUF = MST_Data[i];                // Transmit first character
     while (!(IFG2 & UCB0RXIFG));            // USCI_B0 TX buffer ready?
     data1 = UCB0RXBUF;                      // R15 = 00|MSB
-    data1 = data1 << 8;                     // Bit shifting first byte
+    data1 = data1 << PIPPER_FLOATS;                     // Bit shifting first byte
     UCB0TXBUF = 0x00;
     while (!(IFG2 & UCB0RXIFG));            // USCI_B0 TX buffer ready?
     data2 = UCB0RXBUF;
-    adc = data1 + data2;                     // R14 = 00|LSB
+    adc = data1 + data2;                    // R14 = 00|LSB
     P3OUT |= (BIT0);
-    return (adc*2.5)/4096.;                  // Return voltage value conversion
+    return (adc*2.5)/4096.;                 // Return voltage value conversion
 }
 
 //SPI ADC
-//#pragma vector=TIMERA0_VECTOR
-//__interrupt void Timer_A (void)
 interrupt (TIMERA0_VECTOR) Timer_A (void)
 {
     volatile int i=0;
-    float value[8];
+    float value[PIPPER_FLOATS];
     TACCR0 = 62500;
     P4OUT ^= (BIT0);                            // Toggle LED
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < PIPPER_FLOATS; i++)
         value[i] = spi_adc();                    // Populate array with sampled data
-
+        
 
     uart_index = 0;
 
-    unsigned char ck_a = 0x00, ck_b = 0x00;
-    for (i=2; i<=33; i++)
-    {
-        ck_a = ck_a + uart_buffer[i];
-        ck_b = ck_a + ck_b;
-    }
-    uart_buffer[0] = SYNC_CHAR1;                // Transmitting Syncronization charaters
-    uart_buffer[1] = SYNC_CHAR2;
-    uart_buffer[34] = ck_a;                     // Transmitting checksums
-    uart_buffer[35] = ck_b;
-    memcpy(&uart_buffer[2], &value[0], sizeof(value)); // Memcpy for values
-
+    uart_buffer[0] = PIPPER_SYNC_CHAR1;           // Transmitting Syncronization charaters
+    uart_buffer[1] = PIPPER_SYNC_CHAR2;
+    memcpy(&uart_buffer[2], value, sizeof(value)); // Memcpy for values
+    
+    uart_buffer[34] = check_a((char *)value, sizeof(value));   // Transmitting checksums
+    uart_buffer[35] = check_b((char *)value, sizeof(value));
     IE2 |= UCA0RXIE;
 }
 
 //UART Communication
-//#pragma vector=USCIAB0RX_VECTOR
-//__interrupt void USCIA0RX_ISR (void)
 interrupt (USCIAB0RX_VECTOR) USCIA0RX_ISR (void)
 {
     if((IFG2 & UCA0RXIFG) == UCA0RXIFG)
     {
         received = UCA0RXBUF;
-        if (received == 'p')
+        if (received == PIPPER_ACQUIRE)
             IE2 |= UCA0TXIE;
     }
 }
 
-//#pragma vector=USCIAB0TX_VECTOR
-//__interrupt void USCIA0TX_ISR(void)
 interrupt (USCIAB0TX_VECTOR) USCIA0TX_ISR (void)
 {
     if((IFG2 & UCA0TXIFG) == UCA0TXIFG)
