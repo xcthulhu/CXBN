@@ -35,6 +35,9 @@ void pipper_init() {
   // Set the BAUD Rate to PIPPER_BAUD
   cfsetispeed(&pip_options, PIPPER_BAUD);
 
+  // Ignore break condition
+  pip_options.c_iflag |= (IGNBRK | IGNCR);
+
   // Enable CLOCAL and CREAD
   // MUST ALWAYS BE SET
   pip_options.c_cflag |= (CLOCAL | CREAD);
