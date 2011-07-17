@@ -107,15 +107,6 @@ device=WB_UART_RX
 T 51350 44750 5 10 1 0 0 0 1
 id : device_id=id
 }
-C 47000 44200 1 0 0 fifo_arch.sym
-{
-T 47600 46900 5 10 0 0 0 0 1
-device=fifo
-T 47600 44500 5 10 1 0 0 0 1
-b : natural=?8
-T 47600 44800 5 10 1 0 0 0 1
-w : natural=?4    
-}
 C 44700 45250 1 0 0 charci_arc.sym
 {
 T 46400 46670 5 10 1 1 0 6 1
@@ -142,7 +133,7 @@ netname=reset
 C 48500 45250 1 0 0 charco_arc.sym
 {
 T 50200 46670 5 10 1 1 0 6 1
-refdes=U?
+refdes=UNCONVERT_CHAR
 T 49100 46650 5 10 0 0 0 0 1
 device=charco
 }
@@ -177,4 +168,15 @@ N 50950 45050 50650 45050 4
 {
 T 50450 44750 5 10 1 1 0 0 1
 netname=reset
+}
+C 47000 44200 1 0 0 fifo_arch.sym
+{
+T 48500 46920 5 10 1 1 0 6 1
+refdes=BUF
+T 47600 46900 5 10 0 0 0 0 1
+device=fifo
+T 47600 44500 5 10 1 0 0 0 1
+b : natural=?8
+T 47600 44800 5 10 1 0 0 0 1
+w : natural=?4    
 }

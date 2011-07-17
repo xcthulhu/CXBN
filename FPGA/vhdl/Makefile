@@ -1,9 +1,11 @@
 WORK = work
-GENVHDL = uart_rx_mod_arc.vhdl uart_rx_mod.vhdl
-PDFS = uart_rx_mod.pdf
-OBJS = common_decs.o intercon_decs.o charc_decs.o wb_uart_rx.o \
-       uart_rx.o flag.o br8gen.o uart_rx_mod.o uart_rx_mod_arc.o \
-       charco.o charci.o
+GENVHDL = uart_rx_mod_arc.vhdl uart_rx_mod.vhdl cfifoc.vhdl cfifoc_arc.vhdl \
+          uart_transceiver_mod.vhdl uart_transceiver_mod_arc.vhdl
+PDFS = uart_rx_mod.pdf cfifoc.pdf uart_transceiver_mod.pdf
+OBJS = common_decs.o intercon_decs.o fifo.o charc_decs.o charco.o \
+       charci.o wb_uart_rx.o uart_rx.o uart_tx.o flag.o br8gen.o uart_rx_mod.o \
+       uart_rx_mod_arc.o cfifo.o uart_tx.o wb_uart_transceiver.o cfifoc.o cfifoc_arc.o\
+       uart_transceiver_mod.o uart_transceiver_mod_arc.o 
 SYMBOLS = ./Symbols
 #BITMAP = cxbn.bit
 DEVEL_BASE=../..
@@ -15,9 +17,8 @@ ENTITY_SCM_BOILERPLATE=\
 "(define generate-mode '2)"
 
 S2PS=gschem -p -o $@ -s print.scm $<
-PS2PDF=ps2pdf $< UNCROPPED-$@ ;\
-pdfcrop UNCROPPED-$@ $@ ;\
-rm UNCROPPED-$@
+PS2PDF=ps2pdf $< $@
+PDFCROP=pdfcrop $< $@
 
 # Read the following document for details about using the Xilinx unisim library and ghdl
 # http://www.dossmatik.de/ghdl/ghdl_unisim_eng.pdf
@@ -38,8 +39,15 @@ all: $(OBJS) $(BITMAP) $(SYMBOLS) $(PDFS) $(GENVHDL)
 	gnetlist -c $(ENTITY_SCM_BOILERPLATE) -o $@ -g vams $<
 	$(VHDL_TO_SYM) Symbols $@ $(shell echo $@ | sed 's/.vhdl/_arc.vhdl/')
 
+
 %.ps : %.sch $(SYMBOLS)
 	$(S2PS)
+
+%-UNCROPPED.pdf : %.ps
+	$(PS2PDF)
+	
+%.pdf : %-UNCROPPED.pdf
+	$(PS2PDF)
 
 %.pdf : %.ps
 	$(PS2PDF)
@@ -50,6 +58,8 @@ $(UNISIM) :
 $(SYMBOLS) :
 	mkdir $@ 
 	$(VHDL_TO_SYM) $@ *.vhdl 
+
+%_arc.o: %.o
 
 %.o : %.vhdl $(UNISIM)
 	$(VHDL_C) $< 
