@@ -1,19 +1,19 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.common_decs.all;
 
-entity br8gen is
+entity br8gen_prim is
+  generic ( A : integer := 16 );
   port(
     clk, reset    : in  std_logic;
-    baudrate : in  write_chan;
+    baudrate : in  std_logic_vector(A-1 downto 0);
     max_tick : out std_logic
     );
-end br8gen;
+end;
 
-architecture arch of br8gen is
-  signal r_reg  : unsigned(chan_size-1 downto 0);
-  signal r_next : unsigned(chan_size-1 downto 0);
+architecture arch of br8gen_prim is
+  signal r_reg  : unsigned(A-1 downto 0);
+  signal r_next : unsigned(A-1 downto 0);
 begin
   -- register
   process(clk, reset)

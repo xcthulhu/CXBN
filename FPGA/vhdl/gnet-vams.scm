@@ -39,18 +39,6 @@
 ;;;   its evaluate things like output-file, generate-mode, top-attribs 
 ;;;   and starts the major subroutines.  
 
-;; guile didn't like this code:
-;;
-;; (if (string-index output-filename #\.) 
-;;    (string-rindex output-filename #\.) 
-;;   ofl)
-;; 
-;; as a replacement for line below:
-;;
-;; (lpi (string-rindex output-filename #\. 0 ofl))
-;;
-;; why? (avh)
-
 (define vams
   (lambda (output-filename)
     (let* ((port '())                         ;; write-destination for architecture
@@ -67,12 +55,12 @@
 			   (else  
 			    (gnetlist:get-toplevel-attribute "architecture")))))
 
-	   ;; generate correctly entity name
+	   ;; generate correct entity name
 	   (entity (vams:change-all-whitespaces-to-underlines 
 		    (cond ((string=? 
 			    (gnetlist:get-toplevel-attribute "entity") 
 			    "not found") 
-			   "default_entity")
+                            "default_entity")
 			  (else (gnetlist:get-toplevel-attribute "entity")))))
 
 	   ;; search all ports of a schematic. for entity generation only.
@@ -173,22 +161,34 @@
 ;;; context_item := library_clause | use_clause
 ;;;
 ;;; Implementation note:
-;;;    Both library and use clauses will be generated, eventually...
-;;;    What is missing is the information from gEDA itself, i think.
+;;;    Both library and use clauses are generated from component annotations
 
 
-;;; writes some needed library insertions staticly 
-;;; not really clever, but a first solution
+(define vams:intersperse
+  (lambda (x ls)
+    (cdr (apply append (map (lambda (y) (list x y)) ls)))))
+
+(define vams:list-all-atts 
+  (lambda (att)
+    (delete-duplicates 
+      (apply append 
+        (map (vams:B string-tokenize string-upcase)
+          (filter (lambda (x) (not (or (equal? x "not found")
+                                       (equal? x "unknown"))))
+                  (cons (gnetlist:get-toplevel-attribute att)
+                        (map (lambda (y) (gnetlist:get-package-attribute y att))
+                             packages))))))))
 
 (define vams:write-context-clause
   (lambda (p)
-    (display "LIBRARY ieee,disciplines;\n" p)
-    (display "USE ieee.math_real.all;\n" p)
-    (display "USE ieee.math_real.all;\n" p)
-    (display "USE work.electrical_system.all;\n" p)
-    (display "USE work.all;\n" p)))
-
-
+    (let* 
+      ((libs (vams:list-all-atts "libraries"))
+       (uses (vams:list-all-atts "uses")))
+    (begin 
+      (display (string-concatenate 
+                 (append '("LIBRARY ") (vams:intersperse ", " libs) '(";\n"))) p)
+      (display (string-concatenate 
+                 (append '("USE ") (vams:intersperse ", " uses) '(";\n"))) p)))))
 
 ;;; Primary unit
 ;;;
@@ -617,13 +617,17 @@
 
 (define vams:write-arc-entity
   (lambda (package p)
-    (let ((architecture (gnetlist:get-package-attribute package "architecture")))
+    (let ((architecture (gnetlist:get-package-attribute package "architecture"))
+          (workdir (gnetlist:get-package-attribute package "workdir")))
          (begin
            (display " \n  " p)
            ;; writes instance-label
            (display package p)
            (display " : ENTITY " p)
            ;; writes entity name, which should instantiated
+           ;; first writes the packages workdir if specified
+           (if (not (equal? workdir "unknown"))
+               (begin (display workdir p) (display "." p)))
            (display (get-device package) p)
            ;; write the architecture of an entity in brackets after
            ;; the entity, when necessary.
@@ -655,8 +659,7 @@
 (define vams:get-top-av-pairs
   (lambda (top-atts)
     (map (lambda (att) (list att 
-                             (gnetlist:get-toplevel-attribute att)
-                       ))
+                             (gnetlist:get-toplevel-attribute att)))
          top-atts)))
 
 ;; Given a uref, prints all generics attribute => values
@@ -785,7 +788,7 @@
 	       (begin
 		 (display ", " p)
 		 (newline p)
-		 (vams:write-component-attributes (cdr generic-list) p)))))))
+		 (vams:write-component-attributes (cdr gens) p)))))))
 
 
 ;;;           ARCHITECTURE GENERATING PART
@@ -856,7 +859,7 @@
 (define vams:net-consistence   
   (lambda (att connlist)
     (let* ((ls 
-             ((@ (srfi srfi-1) delete-duplicates)
+             (delete-duplicates
                (map (vams:uncurry 
                       (lambda (uref pin) 
                         (string-downcase 

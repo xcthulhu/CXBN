@@ -74,8 +74,10 @@ begin
             readdata <= id;
           -- Get the Statuses
           when "000001" =>
-            readdata <= (0      => RX_RDY, 1 => RX_OVERFLOW,
-                         2      => TX_IDLE, 3 => TX_OVERFLOW,
+            readdata <= (0      => RX_RDY,
+                         1      => RX_OVERFLOW,
+                         2      => TX_IDLE,
+                         3      => TX_OVERFLOW,
                          others => '0');
           -- Get the RX Count
           when "000010" =>
