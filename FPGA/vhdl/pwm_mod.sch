@@ -16,7 +16,7 @@ refdes=PWM_CLK
 T 41784 44900 8 10 1 1 0 0 1
 entity=PWM_MOD
 T 45084 38400 8 10 1 0 0 0 1
-id : device_id=?x"DEAD"
+id : device_id=?x"BADD"
 N 38700 43100 39100 43100 4
 {
 T 38800 43200 5 10 1 1 0 0 1

@@ -3,16 +3,20 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 package common_decs is
-  -- Size of data channel
+  -- Different synonyms we use for data channels
   constant chan_size : natural := 16;
-  subtype device_id is std_logic_vector(chan_size-1 downto 0);
-  subtype read_chan is std_logic_vector(chan_size-1 downto 0);
-  subtype write_chan is std_logic_vector(chan_size-1 downto 0);
-  subtype imx_chan is std_logic_vector(chan_size-1 downto 0);
+  subtype chan is std_logic_vector(chan_size-1 downto 0);
+  subtype device_id is chan;
+  subtype read_chan is chan;
+  subtype write_chan is chan;
+  subtype imx_chan is chan;
 
-  -- Size of address channel
+  -- Address channel
+  -- From armadeus documentation:
+  ---- http://www.armadeus.com/wiki/index.php?title=APF27_FPGA-IMX_interface_description
+  ---- "ADDR[12]: 12 bits address bus, least significant bit (ADDR[0]) is not used because only word access are done."
   constant addr_size : natural := 12;
-  subtype addr is std_logic_vector(addr_size-1 downto 0);
+  subtype addr is std_logic_vector(addr_size-1 downto 0);  
 
   -- A "Character" is just a byte
   constant char_size : natural := 8;
@@ -25,7 +29,10 @@ package common_decs is
     ack      : std_logic;               -- Acknowledge
   end record;
 
-  -- Common part of the wishbone write system
+  -- Empty read sub-bus
+  constant null_wbr : wbrs := (readdata => (others => '0'), ack => '0');
+
+  ---- Common part of the wishbone write system
   type wbws_common is
   record
     strobe    : std_logic;              -- Data Strobe
@@ -40,6 +47,12 @@ package common_decs is
     cycle : std_logic;                  -- Bus cycle in progress
   end record;
 
+  constant null_wbw : wbws := (cycle => '0',
+                               c => (address => (others => '0'),
+                                     writedata => (others => '0'),
+                                     strobe => '0',
+                                     writing => '0'));
+
   -- IMX signals are very similar to Wishbone
   type imx_in is
   record
@@ -49,41 +62,21 @@ package common_decs is
     eb3_n   : std_logic;
   end record;
   
-  -- Methods for checking for access to the wishbone bus
-  ---- For wbw.writing = '0'
-  function check_wb0 (wbw : wbws) return boolean;
-  ---- For wbw.writing = '1'
-  function check_wb1 (wbw : wbws) return boolean;
-  -- i.MX Control Signals
-
-  -- Calculates minimum/maximum
-  function minimum (a, b : natural) return natural;
-  function maximum (a, b : natural) return natural;
+  -- Access protocols for wishbone slave
+  ---- Checks if the master is reading 
+  function master_is_reading(wbw : wbws) return boolean;
+  ---- Checks if the master is writing
+  function master_is_writing(wbw : wbws) return boolean;
 end package;
 
 package body common_decs is
-  function check_wb0(wbw : wbws) return boolean is
+
+  function master_is_reading(wbw : wbws) return boolean is
   begin return (wbw.c.strobe = '1' and wbw.cycle = '1' and wbw.c.writing = '0');
   end;
 
-  function check_wb1 (wbw : wbws) return boolean is
+  function master_is_writing(wbw : wbws) return boolean is
   begin return (wbw.c.strobe = '1' and wbw.cycle = '1' and wbw.c.writing = '1');
   end;
 
-  function minimum (a, b : natural) return natural is
-  begin
-    if (a > b) then
-      return b;
-    else return a;
-    end if;
-  end;
-
-  function maximum (a, b : natural) return natural is
-  begin
-    if (a < b) then
-      return b;
-    else return a;
-    end if;
-  end;
-  
 end package body common_decs;

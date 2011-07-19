@@ -32,12 +32,12 @@ end entity;
 
 architecture RTL of WB_PWM is
   signal readdata       : read_chan;
-  signal addr           : std_logic_vector((botb - 1) downto 0);
+  signal saddr          : subsys_addr;
   signal rd_ack, wr_ack : std_logic;
   signal flag           : std_logic;
   signal duty           : write_chan;
 begin
-  addr <= wbw.c.address((botb - 1) downto 0);
+  saddr <= subsys(wbw.c.address);
 
   --  Register reading logic
   readdata_logic : process(clk, reset)
@@ -47,15 +47,18 @@ begin
       readdata <= (others => '0');
     elsif(rising_edge(clk)) then
       rd_ack <= '0';
-      if check_wb0(wbw) then
+      if master_is_reading(wbw) then
         rd_ack <= '1';
-        case addr is
-          when "000010" =>
-            readdata <= DUTY_REPORT;
-          when "000011" =>
+        case saddr is
+          -- ALL SUBSYSTEM ADDRESSES MUST BE EVEN!!!!
+          -- Explanation:
+          -- http://www.armadeus.com/wiki/index.php?title=APF27_FPGA-IMX_interface_description
+          when x"0" =>
             readdata <= id;
+          when x"2" =>
+            readdata <= DUTY_REPORT;
           when others =>
-            readdata <= x"BADD";
+            readdata <= x"BAD3";
         end case;
       end if;
     end if;
@@ -72,10 +75,10 @@ begin
       wr_ack <= '0';
       flag   <= '0';
       duty   <= (others => '0');
-      if check_wb1(wbw) then
+      if master_is_writing(wbw) then
         wr_ack <= '1';
-        case addr is
-          when "000010" =>
+        case saddr is
+          when x"2" =>
             duty <= wbw.c.writedata;
             flag <= '1';
           when others => null;
@@ -85,9 +88,8 @@ begin
   end process;
 
   wbr.ack      <= rd_ack or wr_ack;
-  wbr.readdata <= readdata when (check_wb0(wbw))
+  wbr.readdata <= readdata when (master_is_reading(wbw))
                   else (others => '0');
   DUTY_SET_FLAG   <= flag;
   DUTY_ASSIGNMENT <= duty;
-  
 end architecture RTL;
