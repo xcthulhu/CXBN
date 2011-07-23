@@ -21,14 +21,15 @@ package intercon_decs is
 
   -- The device addresses of the modules
   -- on the wishbone bus
-  constant a_priority : dev_addr := x"AA";
-  constant a_pwmx     : dev_addr := x"B1";
-  constant a_pwmy     : dev_addr := x"B2";
-  constant a_pwmz     : dev_addr := x"B3";
-  constant a_temp     : dev_addr := x"10";
-  constant a_suncss   : dev_addr := x"C1";
-  constant a_sunmss   : dev_addr := x"C2";
-  constant a_sunfss   : dev_addr := x"C3";
+  constant priority_a : dev_addr := x"AA";
+  constant pwmx_a     : dev_addr := x"B1";
+  constant pwmy_a     : dev_addr := x"B2";
+  constant pwmz_a     : dev_addr := x"B3";
+  constant temp_a     : dev_addr := x"10";
+  constant suncss_a   : dev_addr := x"C1";
+  constant sunmss_a   : dev_addr := x"C2";
+  constant sunfss_a   : dev_addr := x"C3";
+  constant wbrst_a    : dev_addr := x"FF";
 end package;
 
 package body intercon_decs is
