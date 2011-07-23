@@ -24,7 +24,7 @@ end entity;
 architecture modulator of pwm is
   -- Principle registers of a the pulse width modulator: 
   -- the duty cycle and the counter 
-  signal duty, counter : std_logic_vector(A-1 downto 0);
+  signal duty, counter : std_logic_vector(A-2 downto 0);
   signal sgn           : std_logic;
 begin
   set_logic : process (clk, reset)
