@@ -1,4 +1,4 @@
-WORK = work
+WORK = cxbn
 GENVHDL = br8gen.vhdl br8gen_arc.vhdl \
           pwmc.vhdl pwmc_arc.vhdl \
           pwm_mod.vhdl pwm_mod_arc.vhdl \
@@ -11,7 +11,7 @@ PNGS = uart_transceiver_mod.png pwm_mod.png pwm_mod_arc_symbol.png \
        uart_transceiver_mod_arc_symbol.png 
 OBJS = common_decs.o intercon_decs.o charc_decs.o write_chanc_decs.o \
        charco.o charci.o write_chano.o write_chani.o uart_rx.o uart_tx.o \
-       flag.o fifo.o cfifo.o br8gen_prim.o pwm.o \
+       flag.o fifo.o cfifo.o br8gen_prim.o pwm.o intercon.o \
        wb_uart_transceiver.o wb_uart_rx.o wb_pwm.o \
        cfifoc.o cfifoc_arc.o \
        pwmc.o pwmc_arc.o \
@@ -41,7 +41,9 @@ UNISIM_VHDL=$(DEVEL_BASE)/unisim
 UNISIM=$(UNISIM_VHDL)/unisim-obj93.cf
 
 COMP=ghdl
-VHDL_C=$(COMP) -a -g --work=$(WORK) -P$(UNISIM_VHDL) --ieee=synopsys -fexplicit --warn-reserved --warn-default-binding --warn-binding --warn-library --warn-vital-generic --warn-delayed-checks --warn-body --warn-specs --warn-unused
+VHDL_FLAGS=--work=$(WORK) -P$(UNISIM_VHDL) --ieee=synopsys -fexplicit --warn-reserved --warn-default-binding --warn-binding --warn-library --warn-vital-generic --warn-delayed-checks --warn-body --warn-specs --warn-unused
+VHDL_C=$(COMP) -a -g $(VHDL_FLAGS)
+VHDL_I=$(COMP) -i -g $(VHDL_FLAGS)
 RM=rm -f
 VHDL_TO_SYM=$(DEVEL_BASE)/lambda-geda/vhdl-to-sym
 
