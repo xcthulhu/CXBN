@@ -88,8 +88,8 @@ begin
   end process;
 
   wbr.ack      <= rd_ack or wr_ack;
-  wbr.readdata <= readdata when (master_is_reading(wbw))
-                  else (others => '0');
+  wbr.readdata <= readdata when  rd_ack = '1'                 
+		           else (others => '0');
   DUTY_SET_FLAG   <= flag;
   DUTY_ASSIGNMENT <= duty;
 end architecture RTL;
