@@ -158,7 +158,7 @@ begin
   end process;
 
   wbr.ack      <= RD_ACK or WR_ACK;
-  wbr.readdata <= readdata when (master_is_reading(wbw))
+  wbr.readdata <= readdata when RD_ACK = '1'
                   else (others => '0');
   RX_RESET <= rx_rst;
   TX_RESET <= tx_rst;
