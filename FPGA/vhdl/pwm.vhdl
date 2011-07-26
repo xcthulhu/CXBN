@@ -36,7 +36,11 @@ begin
       pulse   <= '0';
     elsif s = '1' then
         sgn <= assign_duty(A-1);
-        duty <= unsigned(assign_duty(A-2 downto 0));
+	if (assign_duty(A-1) = '0') then
+          duty <= unsigned(assign_duty(A-2 downto 0));
+        else
+          duty <= not unsigned(assign_duty(A-2 downto 0));
+        end if;
         counter <= (others => '0');
     elsif rising_edge(pwm_clk) then
         if (counter < duty) then
@@ -54,7 +58,5 @@ begin
 	-- We pulse as long as the counter is less than the duty cycle.
 	-- Make sure sign is hooked up to other end of H-bridge,
 	-- to get correct behavior when low
-  pulse <= 'H' when counter(1) = '1' else
-           'L';
 
 end architecture;
