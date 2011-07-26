@@ -1,0 +1,35 @@
+M
+M --- Check the id (should be "5555" in HEX) ---
+R 000
+
+M
+M --- Check out-of-bounds ---
+R FFF
+
+M
+M --- Make sure reset triggers ---
+T 50
+
+
+M
+M --- Get initial duty cycle (should be 0) ---
+R 002
+
+M
+M --- Set duty cycle ---
+W 002 000f
+
+M
+M --- Check duty cycle correct ---
+R 002
+
+M
+M --- Wait for some pulses ---
+T 9000
+
+M
+M --- Other tests
+W 002 00ff
+T 9000
+W 002 ff00
+T 9000
