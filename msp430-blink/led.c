@@ -1,9 +1,9 @@
 /* Blink LED example */
 
-#include <msp430g2231.h>
+#include <msp430f2274.h>
 
 /** Delay function. **/
-delay(unsigned int d) {
+void delay(unsigned int d) {
   int i;
   for (i = 0; i<d; i++) {
     nop();
@@ -12,11 +12,11 @@ delay(unsigned int d) {
 
 int main(void) {
   WDTCTL = WDTPW | WDTHOLD;
-  P1DIR = 0xFF;
-  P1OUT = 0x01;
+  P4DIR |= 0x01;
+  P4OUT = 0x01;
 
   for (;;) {
-    P1OUT = ~P1OUT;
+    P4OUT = ~P4OUT;
     delay(0x4fff);
   }
 }
