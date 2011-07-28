@@ -1,63 +1,55 @@
-    //******************************************************************************
-    //  MSP430F22x4 Demo - ADC10, Sample A0, 1.5V Ref, Set P1.0 if A0 > 0.2V
-    //
-    //  Description: A single sample is made on A0 with reference to internal
-    //  1.5V Vref. Software sets ADC10SC to start sample and conversion - ADC10SC
-    //  automatically cleared at EOC. ADC10 internal oscillator times sample (16x)
-    //  and conversion. In Mainloop MSP430 waits in LPM0 to save power until ADC10
-    //  conversion complete, ADC10_ISR will force exit from LPM0 in Mainloop on
-    //  reti. If A0 > 0.2V, P1.0 set, else reset.
-    //
-    //                MSP430F22x4
-    //             -----------------
-    //         /|\|              XIN|-
-    //          | |                 |
-    //          --|RST          XOUT|-
-    //            |                 |
-    //        >---|P2.0/A0      P1.0|-->LED
-    //
-    //  A. Dannenberg
-    //  Texas Instruments Inc.
-    //  April 2006
-    //  Built with CCE Version: 3.2.0 and IAR Embedded Workbench Version: 3.41A
-    //******************************************************************************
+/* Blink LED example */
+
 #include <msp430f2274.h>
 #include <signal.h>
-#include <string.h> 
-    
-void main(void)
-{
-	WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-	ADC10CTL0 = SREF_1 + ADC10SHT_2 + REFON + ADC10ON + ADC10IE;
-	TACCR0 = 30;                              // Delay to allow Ref to settle
-	TACCTL0 |= CCIE;                          // Compare-mode interrupt.
-	TACTL = TASSEL_2 + MC_1;                  // TACLK = SMCLK, Up mode.
-	__bis_SR_register(CPUOFF + GIE);          // LPM0, TA0_ISR will force exit
-	TACCTL0 &= ~CCIE;                         // Disable timer Interrupt
-	ADC10AE0 |= 0x01;                         // P2.0 ADC option select
-	P4DIR |= 0x01;                            // Set P1.0 to output direction
-     
-      for (;;)
-      {
-        ADC10CTL0 |= ENC + ADC10SC;             // Sampling and conversion start
-        __bis_SR_register(CPUOFF + GIE);        // LPM0, ADC10_ISR will force exit
-        if (ADC10MEM < 0x88)                    // ADC10MEM = A0 > 0.2V?
-          P4OUT &= ~0x01;                       // Clear P1.0 LED off
-        else
-          P4OUT |= 0x01;                        // Set P1.0 LED on
-      }
+
+int main(void) {
+  WDTCTL = WDTPW | WDTHOLD;
+  WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
+  BCSCTL1 = CALBC1_1MHZ;                    // Set DCO
+  DCOCTL = CALDCO_1MHZ;
+  P4OUT = (BIT0);                           // P4 setup for LED
+  P4DIR |= (BIT0);
+  
+  // UART Configuration
+  UCA0MCTL = UCBRS2 | UCBRS0;               // Modulation UCBRSx = 5
+  UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
+  IE2 |= UCA0RXIE;                          // Enable USCI0 RX interrupt
+  IE2 |= UCA0TXIE;
+  UCA0BR0 = 0x08;                           // 1MHz 115200
+  UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
+  IE2 |= UCA0RXIE;                          // Enable USCI0 RX interrupt
+  IE2 |= UCA0TXIE;
+  TACCTL0 = CCIE;                           // TACCR0 interrupt enabled
+
+  //  for (;;) {
+  //  P4OUT = ~P4OUT;
+  //   delay(0x4fff);
+  // }
 }
-     
-// ADC10 interrupt service routine
-//#pragma vector=ADC10_VECTOR
-interrupt (ADC10_VECTOR) ADC10_ISR(void)
+
+//UART Communication
+interrupt (USCIAB0RX_VECTOR) USCIA0RX_ISR (void)
 {
-      __bic_SR_register_on_exit(CPUOFF);        // Clear CPUOFF bit from 0(SR)
+  if((IFG2 & UCA0RXIFG) == UCA0RXIFG)
+    {
+      if (UCA0RXBUF == 'p')
+	{	
+	  P4OUT = ~P4OUT;
+	}
+    }
 }
-     
-//#pragma vector=TIMERA0_VECTOR
-interrupt (TIMERA0_VECTOR) TA0_ISR(void)
+
+/*interrupt (USCIAB0TX_VECTOR) USCIA0TX_ISR(void)
 {
-    TACTL = 0;
-    LPM0_EXIT;                                // Exit LPM0 on return
+  if((IFG2 & UCA0TXIFG) == UCA0TXIFG)
+    {	
+      UCA0TXBUF = (uart_buffer[uart_index++]);
+      if (uart_index >= 36)
+	{
+	  uart_index = 0;
+	  IE2 &= ~UCA0TXIE;
+	}
+    }
 }
+*/
