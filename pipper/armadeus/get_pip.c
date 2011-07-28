@@ -65,7 +65,7 @@ void pip_acquire() {
 // BUFFERED
 // Returns 0xFF in case of failure
 char get_pipc() {
-  static int i = 0, j = 0;
+  static int i = 0, j = 0, timeout = 3;
   static char buf[255];
   if (i >= j) i = j = 0;
   if (i == 0) j = read(pip_fd,buf,sizeof(buf));
@@ -75,12 +75,17 @@ char get_pipc() {
      /* If we are acquiring data, 
         resend request to MSP430 to transmit
         and try to read a character again    */
-     if (acquiring)
+     if (acquiring && timeout > 0)
      {
+	timeout--;
 	pip_acquire();
         return get_pipc();
      }
-     else return 0xFF;     // Shouldn't ever happen
+     else {
+	timeout = 3;
+	perror("Timeout on tries reached for pipper array");
+	return 0xFF;     // Shouldn't ever happen
+    }
   }
   else return buf[i++];
 }

@@ -2,7 +2,7 @@
 #define LINUX_PIPPER_UART "/dev/ttyUSB1"
 
 // BAUD RATE is 115200 (1 Mhz)
-#define PIPPER_BAUD B38400
+#define PIPPER_BAUD B115200
 
 // Initialization routine for pipper subsystem
 void pipper_init();
