@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Os -Wall
-OBJS=get_czt.o test.o
+OBJS=get_pip.o test.o
 BENCH_TEST=test
 
 all: $(OBJS) $(BENCH_TEST)

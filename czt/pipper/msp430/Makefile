@@ -1,4 +1,4 @@
 BASEDIR=../..
-OBJ=adc.elf
+OBJ=pipper.elf
 
 include $(BASEDIR)/msp430.mk
