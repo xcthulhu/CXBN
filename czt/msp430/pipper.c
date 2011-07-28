@@ -46,7 +46,7 @@ void main(void)
   	__bis_SR_register(LPM0_bits + GIE);       // CPU off, enable interrupts
 }
 
-int spi_adc (int i)
+float spi_adc (int i)
 {
 	// Initialize data values
 	// MST_Data Array. <Hex - Binary> 
@@ -71,7 +71,7 @@ int spi_adc (int i)
 	data2 = UCB0RXBUF;
 	adc = data1 + data2;                    // R14 = 00|LSB
 	P3OUT |= (BIT0);
-	return (adc*2.5)/4096.;                 // Voltage value conversion 
+	return .5;                 // Voltage value conversion 
 }
 
 //SPI ADC

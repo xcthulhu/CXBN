@@ -46,7 +46,7 @@ void main(void)
   	__bis_SR_register(LPM0_bits + GIE);       // CPU off, enable interrupts
 }
 
-int spi_adc (int i)
+float spi_adc (int i)
 {
 	// Initialize data values
 	// MST_Data Array. <Hex - Binary> 
