@@ -1,0 +1,6 @@
+[submodule "mspgcc4"]
+	path = mspgcc4
+	url = git://mspgcc4.git.sourceforge.net/gitroot/mspgcc4/mspgcc4
+[submodule "armadeus"]
+	path = armadeus
+	url = git://armadeus.git.sourceforge.net/gitroot/armadeus/armadeus
