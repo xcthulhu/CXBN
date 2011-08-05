@@ -1,13 +1,15 @@
-BASEDIR=..
-ARMADEUS_TOOLCHAIN_PATH=$(BASEDIR)/armadeus/buildroot/output/build/staging_dir/usr/bin/
+BASE=..
+ARMADEUS_TOOLCHAIN_PATH=$(BASE)/armadeus/buildroot/output/build/staging_dir/usr/bin
 CC=$(ARMADEUS_TOOLCHAIN_PATH)/arm-linux-gcc
 CFLAGS=-Wall -Os
-OBJS=hello
+PROGS=hello
 
-all : $(OBJS)
+all : $(PROGS)
 
 hello : hello.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 clean :
 	rm -f $(OBJS)
+
+include $(BASE)/kermit_install.mk
