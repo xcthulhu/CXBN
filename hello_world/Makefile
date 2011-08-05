@@ -12,4 +12,4 @@ hello : hello.c
 clean :
 	rm -f $(OBJS)
 
-include $(BASE)/kermit_install.mk
+include $(BASE)/kermit.mk
